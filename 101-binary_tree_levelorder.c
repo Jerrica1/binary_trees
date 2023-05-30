@@ -1,107 +1,70 @@
 #include "binary_trees.h"
-
+size_t recurse_for_height(const binary_tree_t *tree);
+size_t binary_tree_height(const binary_tree_t *tree);
+void recurse_for_levelorder(const binary_tree_t *tree,
+	void (*func)(int), size_t level);
 /**
- * binary_tree_is_full - checks if a tree is full.
- *
- * @tree: root node.
- * Return: 1 if full or 0 if not
+ * binary_tree_levelorder - traverse tree by level
+ * @tree: tree to traverse
+ * @func: function pointer
+ * Authors: Hanif Miyanji & Maureen Mbugua
  */
-int binary_tree_is_full(const binary_tree_t *tree)
+void binary_tree_levelorder(const binary_tree_t *tree, void (*func)(int))
 {
-	if (!tree)
-		return (1);
-	if (!binary_tree_is_full(tree->left))
-		return (0);
-	if (!binary_tree_is_full(tree->right))
-		return (0);
-	if ((tree->left && !tree->right) || (!tree->left && tree->right))
-		return (0);
-	return (1);
-}
+	size_t height, level = 0;
 
-/**
- * height_recursion - function that calculates the height using recursion
- *
- * @tree: node to find recursion
- * Return: the number of height nodes
- */
+	if (!tree || !func)
+		return;
 
-size_t height_recursion(const binary_tree_t *tree)
-{
-	size_t left_count = 0, right_count = 0;
+	/* retrieve height */
+	height = binary_tree_height(tree);
 
-	if (tree->left)
-		left_count = height_recursion(tree->left);
-	if (tree->right)
-		right_count = height_recursion(tree->right);
-	return ((left_count > right_count) ? left_count + 1 : right_count + 1);
-}
-
-/**
- * binary_tree_balance - returns the balance of a tree
- * @tree: is the node from which to get the node
- * Return: an integer with the height or 0 if node is null
- */
-int binary_tree_balance(const binary_tree_t *tree)
-{
-	int left = 0, right = 0;
-
-	if (tree)
+	while (level <= height)
 	{
-		if (tree->left)
-			left = height_recursion(tree->left);
-		if (tree->right)
-			right = height_recursion(tree->right);
-		return (left - right);
+		recurse_for_levelorder(tree, func, level);
+		level++;
 	}
-	else
-		return (0);
 }
-/**
- * binary_tree_is_perfect - Returns if the tree is perfect
- * @tree: is the node from which to get the node
- *
- * Return: 1 if is perfect, 0 if doesn't
- */
-int binary_tree_is_perfect(const binary_tree_t *tree)
+void recurse_for_levelorder(const binary_tree_t *tree,
+	void (*func)(int), size_t level)
 {
-	int isperfect_left = 1, isperfect_right = 1;
-
 	if (tree == NULL)
-		return (0);
-	if (tree->left)
-		isperfect_left = binary_tree_is_perfect(tree->left);
-	if (tree->right)
-		isperfect_right = binary_tree_is_perfect(tree->right);
-	if (binary_tree_is_full(tree) && !binary_tree_balance(tree))
-		return (isperfect_left * isperfect_right);
-	return (0);
-}
+		return;
 
+	if (level == 0)
+		func(tree->n);
+
+	recurse_for_levelorder(tree->left, func, level - 1);
+	recurse_for_levelorder(tree->right, func, level - 1);
+}
 /**
- * binary_tree_is_complete - returns 1 if the tree is complete
- * @tree: is the node from which to get the tree
+ * binary_tree_height - measure height of tree
+ * @tree: tree to measure
  *
- * Return: 1 if is complete, 0 if doesn't
+ * Return: height
  */
-int binary_tree_is_complete(const binary_tree_t *tree)
+size_t binary_tree_height(const binary_tree_t *tree)
 {
-	int complete_left = 1, complete_right = 1;
+	return (recurse_for_height(tree) - 1);
+}
+/**
+ * recurse_for_height - measure height
+ * @tree: tree to measure
+ *
+ * Return: height
+ */
+size_t recurse_for_height(const binary_tree_t *tree)
+{
+	size_t heightR, heightL;
 
 	if (!tree)
 		return (0);
-	if (tree->left)
-		complete_left = binary_tree_is_complete(tree->left);
-	if (tree->right)
-		complete_right = binary_tree_is_complete(tree->right);
-	if (binary_tree_balance(tree) == 1)
-		return (complete_left * complete_right);
-	if (!binary_tree_balance(tree))
-	{
-		if (!tree->right || (tree->left && binary_tree_is_perfect(tree->left)))
-			return (complete_left * complete_right);
-		else
-			return (0);
-	}
-	return (0);
+
+	heightL = recurse_for_height(tree->left);
+	heightR = recurse_for_height(tree->right);
+
+	if (heightL > heightR)
+		return (heightL + 1);
+	else
+		return (heightR + 1);
 }
