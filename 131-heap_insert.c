@@ -1,158 +1,69 @@
 #include "binary_trees.h"
-/**
- * enqueue - insert a node at the end
- * @head: head of queue
- * @node: node to insert
- * Return: pointer to newly created list element or NULL on failure
- */
-queue_t *enqueue(queue_t **head, const binary_tree_t *node)
-{
-	queue_t *new, *tmp;
-
-	if (!node)
-		return (NULL); /*do not insert a null value*/
-
-	if (!head)
-		return (NULL); /*edge case we should not meet here*/
-
-	new = malloc(sizeof(queue_t));
-	if (!new)
-	{
-		while (*head)
-		{
-			tmp = *head;
-			*head = (*head)->next;
-			free(tmp);
-		}
-		return (NULL);
-	}
-
-	new->node = (binary_tree_t *)node;
-	new->next = NULL;
-	if (!*head)
-	{
-		*head = new;
-	}
-	else
-	{
-		tmp = *head;
-		while (tmp->next)
-			tmp = tmp->next;
-		tmp->next = new;
-	}
-	return (new);
-}
 
 /**
- * dequeue - return a node from the beginning
- * @head: head of queue
- * Return: a pointer to a binary tree node
- */
-binary_tree_t *dequeue(queue_t **head)
-{
-	queue_t *tmp;
-	binary_tree_t *node;
-
-	if (!head || !*head)
-		return (NULL);
-
-	tmp = *head;
-	*head = tmp->next;
-	node = tmp->node;
-	free(tmp);
-
-	return (node);
-}
-/**
- * free_queue - frees a queue!
- * @head: ptr to head of queue
+ * heap_insert - inserts a value in Max Binary Heap
+ * @root: a double pointer to the root node of the Heap to insert the value
+ * @value: the value to store in the node to be inserted
+ * Comments
  *
- */
-void free_queue(queue_t **head)
-{
-	queue_t *temp1, *temp2;
-
-	if (!head || !(*head))
-		return;
-	temp1 = *head;
-	while (temp1 != NULL)
-	{
-		temp2 = temp1;
-		temp1 = temp1->next;
-		free(temp2);
-	}
-	*head = NULL;
-}
-/**
- * heapify_tree - heapifies our tree!
- * travels up tree from parent to parent
- * swaps when root > parent
- * @root: ptr to new node from heap_insert
- * Return: a pointer to the final node bearing the value inserted
- */
-heap_t *heapify_tree(heap_t *root)
-{
-	int temp;
-	heap_t *to_return;
-
-	to_return = root;
-	while (root->parent)
-	{
-		if (root->parent->n < root->n)
-		{
-			temp = root->n;
-			root->n = root->parent->n;
-			root->parent->n = temp;
-			to_return = root->parent;
-		}
-		root = root->parent;
-	}
-	return (to_return);
-}
-/**
- * heap_insert - inserts into a heap
- * insertion must not break max binary heap
- * so after inserting the node, we traverse up the tree,
- * swapping nodes until all properties of max binary heaps
- * are satisfied
- * @root: double ptr to root of max bin heap
- * @value: int value to be included in new node
- * Return: ptr to created node or NULL if not possible
+ * Return: a pointer to the created node
+ *         NULL on failure
  */
 heap_t *heap_insert(heap_t **root, int value)
 {
-	queue_t *queue;
-	binary_tree_t *temp;
-	heap_t *new, *to_return;
+	heap_t *tree, *new, *flip;
+	int size, leaves, sub, bit, level, tmp;
 
 	if (!root)
 		return (NULL);
 	if (!(*root))
-	{
-		*root = binary_tree_node(NULL, value);
-		return (*root);
-	}
-	queue = NULL;
-	enqueue(&queue, *root);
+		return (*root = binary_tree_node(NULL, value));
+	tree = *root;
+	size = binary_tree_size(tree);
+	leaves = size;
+	for (level = 0, sub = 1; leaves >= sub; sub *= 2, level++)
+		leaves -= sub;
+	/* subtract all nodes except for bottom-most level */
 
-	while (queue)
+	for (bit = 1 << (level - 1); bit != 1; bit >>= 1)
+		tree = leaves & bit ? tree->right : tree->left;
+	/*
+	 * Traverse tree to first empty slot based on the binary
+	 * representation of the number of leaves.
+	 * Example -
+	 * If there are 12 nodes in a complete tree, there are 5 leaves on
+	 * the 4th tier of the tree. 5 is 101 in binary. 1 corresponds to
+	 * right, 0 to left.
+	 * The first empty node is 101 == RLR, *root->right->left->right
+	 */
+
+	new = binary_tree_node(tree, value);
+	leaves & 1 ? (tree->right = new) : (tree->left = new);
+
+	flip = new;
+	for (; flip->parent && (flip->n > flip->parent->n); flip = flip->parent)
 	{
-		temp = dequeue(&queue);
-		if (!temp->left || !temp->right)
-		{
-			free_queue(&queue);
-			break;
-		}
-		enqueue(&queue, temp->left);
-		enqueue(&queue, temp->right);
+		tmp = flip->n;
+		flip->n = flip->parent->n;
+		flip->parent->n = tmp;
+		new = new->parent;
 	}
-	new = binary_tree_node(temp, value);
-	if (!new)
-		return (NULL);
-	if (!temp->left)
-		temp->left = new;
-	else
-		temp->right = new;
-	to_return = heapify_tree(new);
-	return (to_return);
+	/* Flip values with parent until parent value exceeds new value */
+
+	return (new);
+}
+
+/**
+ * binary_tree_size - measures the size of a binary tree
+ * @tree: tree to measure the size of
+ *
+ * Return: size of the tree
+ *         0 if tree is NULL
+ */
+size_t binary_tree_size(const binary_tree_t *tree)
+{
+	if (!tree)
+		return (0);
+
+	return (binary_tree_size(tree->left) + binary_tree_size(tree->right) + 1);
 }
