@@ -1,7 +1,7 @@
 0x1D. C - Binary trees
 ======================
 
-- By [Jerrica Jackson](https://github.com/Jerrica1) and [Henriette Uwizeyimana](https://github.com/titisunflower)
+- By [Jerrica Jackson](https://github.com/Jerrica1)
 - Weight: 5
 
 Resources
@@ -2961,7 +2961,6 @@ What are the average time complexities of those operations on a Binary Heap (one
 - GitHub repository: `binary_trees`
 - File: `135-O`
 
-**AUTHORS**
+**AUTHOR**
 
-- [Jerrica Jackson](https://github.com/Jerrica1)
-- [Henriette Uwizeyimana](https://github.com/titisunflower)
+- [Jerrica Jackson](https://github.com/Jerrica1]
